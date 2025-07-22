@@ -1,5 +1,5 @@
-# Firebase Studio
+# Hifdh Tracker
 
-This is a NextJS starter in Firebase Studio.
+This is a NextJS app was mostly vibe coded. Initially prototyped with Firebase Studio then vibe coded with agentic VS Code.
 
-To get started, take a look at src/app/page.tsx.
+I built this for my own personal problem of keeping track of my memorization. It also allows me to make my progress public to keep me accountable.
