@@ -20,10 +20,20 @@ interface SurahCardProps {
 }
 
 const statusConfig = {
-  memorized: {
+  'strong-memorization': {
+    icon: CheckCircle2,
+    className: 'text-green-600 border-green-600/80 bg-green-600/5',
+    label: 'Strong Memorization',
+  },
+  'needs-revision': {
+    icon: BookCopy,
+    className: 'text-orange-600 border-orange-600/80 bg-orange-600/5',
+    label: 'Needs Revision',
+  },
+  'weak-memorization': {
     icon: CheckCircle2,
     className: 'text-accent border-accent/80 bg-accent/5',
-    label: 'Memorized',
+    label: 'Weak Memorization',
   },
   'in-progress': {
     icon: CircleDashed,
@@ -38,7 +48,7 @@ const statusConfig = {
 };
 
 export default function SurahCard({ surah, isEditable, onStatusChange }: SurahCardProps) {
-  const config = statusConfig[surah.status];
+  const config = statusConfig[surah.status] || statusConfig['not-started']; // Fallback to 'not-started' if status not found
   const Icon = config.icon;
 
   return (
@@ -72,7 +82,9 @@ export default function SurahCard({ surah, isEditable, onStatusChange }: SurahCa
               <SelectContent>
                 <SelectItem value="not-started">Not Started</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="memorized">Memorized</SelectItem>
+                <SelectItem value="weak-memorization">Weak Memorization</SelectItem>
+                <SelectItem value="needs-revision">Needs Revision</SelectItem>
+                <SelectItem value="strong-memorization">Strong Memorization</SelectItem>
               </SelectContent>
             </Select>
           </div>

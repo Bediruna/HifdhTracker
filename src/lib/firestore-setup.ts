@@ -35,9 +35,11 @@ Document Structure:
 {
   userId: string,
   surahs: {
-    1: "memorized",
+    1: "strong-memorization",
     2: "in-progress", 
-    3: "not-started",
+    3: "weak-memorization",
+    4: "needs-revision",
+    5: "not-started",
     // ... for all 114 surahs
   },
   lastUpdated: timestamp

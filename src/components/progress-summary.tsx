@@ -11,16 +11,22 @@ interface ProgressSummaryProps {
 export default function ProgressSummary({ surahs }: ProgressSummaryProps) {
   const stats = useMemo(() => {
     const total = surahs.length;
-    const memorized = surahs.filter(s => s.status === 'memorized').length;
+    const strongMemorization = surahs.filter(s => s.status === 'strong-memorization').length;
+    const needsRevision = surahs.filter(s => s.status === 'needs-revision').length;
+    const weakMemorization = surahs.filter(s => s.status === 'weak-memorization').length;
     const inProgress = surahs.filter(s => s.status === 'in-progress').length;
     const notStarted = surahs.filter(s => s.status === 'not-started').length;
 
     return {
       total,
-      memorized,
+      strongMemorization,
+      needsRevision,
+      weakMemorization,
       inProgress,
       notStarted,
-      memorizedPercent: (memorized / total) * 100,
+      strongMemorizationPercent: (strongMemorization / total) * 100,
+      needsRevisionPercent: (needsRevision / total) * 100,
+      weakMemorizationPercent: (weakMemorization / total) * 100,
       inProgressPercent: (inProgress / total) * 100,
       notStartedPercent: (notStarted / total) * 100,
     };
@@ -34,10 +40,24 @@ export default function ProgressSummary({ surahs }: ProgressSummaryProps) {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <div className="flex justify-between font-medium">
-            <span>Memorized</span>
-            <span>{stats.memorized} of {stats.total} Surahs</span>
+            <span>Strong Memorization</span>
+            <span>{stats.strongMemorization} of {stats.total} Surahs</span>
           </div>
-          <Progress value={stats.memorizedPercent} className="h-3 [&>div]:bg-accent" />
+          <Progress value={stats.strongMemorizationPercent} className="h-3 [&>div]:bg-green-600" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between font-medium">
+            <span>Needs Revision</span>
+            <span>{stats.needsRevision} Surahs</span>
+          </div>
+          <Progress value={stats.needsRevisionPercent} className="h-3 [&>div]:bg-orange-600" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between font-medium">
+            <span>Weak Memorization</span>
+            <span>{stats.weakMemorization} Surahs</span>
+          </div>
+          <Progress value={stats.weakMemorizationPercent} className="h-3 [&>div]:bg-accent" />
         </div>
         <div className="space-y-2">
           <div className="flex justify-between font-medium">
