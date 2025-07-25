@@ -37,10 +37,14 @@ export function useAdminProgress() {
             console.log('useAdminProgress: Document data found', data);
             
             // Merge with quranData to get the full surah information
-            const updatedSurahs = quranData.map(surah => ({
-              ...surah,
-              status: data.surahs[surah.id] || surah.status
-            }));
+            const updatedSurahs = quranData.map(surah => {
+              const progress = data.surahs[surah.id];
+              return {
+                ...surah,
+                memorizationStrength: progress?.memorizationStrength || surah.memorizationStrength,
+                percentMemorized: progress?.percentMemorized || surah.percentMemorized
+              };
+            });
             
             setSurahs(updatedSurahs);
           } else {
@@ -97,10 +101,14 @@ export function useUserProgress(userId: string | null) {
             const data = doc.data() as HifdhProgress;
             
             // Merge with quranData to get the full surah information
-            const updatedSurahs = quranData.map(surah => ({
-              ...surah,
-              status: data.surahs[surah.id] || surah.status
-            }));
+            const updatedSurahs = quranData.map(surah => {
+              const progress = data.surahs[surah.id];
+              return {
+                ...surah,
+                memorizationStrength: progress?.memorizationStrength || surah.memorizationStrength,
+                percentMemorized: progress?.percentMemorized || surah.percentMemorized
+              };
+            });
             
             setSurahs(updatedSurahs);
           } else {

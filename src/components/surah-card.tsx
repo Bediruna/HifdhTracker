@@ -1,55 +1,67 @@
 'use client'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, CircleDashed, Circle, BookCopy } from 'lucide-react';
-import type { Surah, SurahStatus } from '@/lib/quran-data';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { BookCopy, Zap, CircleCheck } from 'lucide-react';
+import type { Surah } from '@/lib/quran-data';
 import { Badge } from './ui/badge';
-
+import { Progress } from './ui/progress';
+import { Slider } from './ui/slider';
+import { Label } from './ui/label';
 
 interface SurahCardProps {
   surah: Surah;
   isEditable: boolean;
-  onStatusChange?: (id: number, status: SurahStatus) => void;
+  onProgressChange?: (id: number, memorizationStrength: number, percentMemorized: number) => void;
 }
 
-const statusConfig = {
-  'strong-memorization': {
-    icon: CheckCircle2,
-    className: 'text-green-600 border-green-600/80 bg-green-600/5',
-    label: 'Strong Memorization',
-  },
-  'needs-revision': {
-    icon: BookCopy,
-    className: 'text-orange-600 border-orange-600/80 bg-orange-600/5',
-    label: 'Needs Revision',
-  },
-  'weak-memorization': {
-    icon: CheckCircle2,
-    className: 'text-accent border-accent/80 bg-accent/5',
-    label: 'Weak Memorization',
-  },
-  'in-progress': {
-    icon: CircleDashed,
-    className: 'text-primary border-primary/80 bg-primary/5',
-    label: 'In Progress',
-  },
-  'not-started': {
-    icon: Circle,
-    className: 'text-foreground/50 border-border bg-background',
-    label: 'Not Started',
-  },
-};
+// Helper function to get the color and icon based on memorization strength
+function getMemorizationConfig(strength: number) {
+  if (strength >= 9) {
+    return {
+      icon: CircleCheck,
+      className: 'text-green-600 border-green-600/80 bg-green-600/5',
+      label: 'Excellent',
+      color: 'text-green-600'
+    };
+  } else if (strength >= 7) {
+    return {
+      icon: Zap,
+      className: 'text-blue-600 border-blue-600/80 bg-blue-600/5',
+      label: 'Good',
+      color: 'text-blue-600'
+    };
+  } else if (strength >= 4) {
+    return {
+      icon: BookCopy,
+      className: 'text-orange-600 border-orange-600/80 bg-orange-600/5',
+      label: 'Moderate',
+      color: 'text-orange-600'
+    };
+  } else {
+    return {
+      icon: BookCopy,
+      className: 'text-gray-500 border-gray-500/80 bg-gray-500/5',
+      label: 'Beginner',
+      color: 'text-gray-500'
+    };
+  }
+}
 
-export default function SurahCard({ surah, isEditable, onStatusChange }: SurahCardProps) {
-  const config = statusConfig[surah.status] || statusConfig['not-started']; // Fallback to 'not-started' if status not found
+export default function SurahCard({ surah, isEditable, onProgressChange }: SurahCardProps) {
+  const config = getMemorizationConfig(surah.memorizationStrength);
   const Icon = config.icon;
+
+  const handleStrengthChange = (value: number[]) => {
+    if (onProgressChange) {
+      onProgressChange(surah.id, value[0], surah.percentMemorized);
+    }
+  };
+
+  const handlePercentChange = (value: number[]) => {
+    if (onProgressChange) {
+      onProgressChange(surah.id, surah.memorizationStrength, value[0]);
+    }
+  };
 
   return (
     <Card className={cn("flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1", config.className)}>
@@ -60,7 +72,7 @@ export default function SurahCard({ surah, isEditable, onStatusChange }: SurahCa
         </div>
         <CardDescription className="text-foreground/70">{surah.englishName}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow space-y-4">
          <div className="flex items-center space-x-4 text-sm text-foreground/80">
             <div className="flex items-center">
               <BookCopy className="mr-1.5 h-4 w-4" />
@@ -68,28 +80,65 @@ export default function SurahCard({ surah, isEditable, onStatusChange }: SurahCa
             </div>
             <Badge variant="outline" className="border-current">{surah.revelationType}</Badge>
           </div>
+          
+          {/* Progress Display */}
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Percent Memorized</Label>
+                <span className={cn("text-sm font-semibold", config.color)}>{surah.percentMemorized}%</span>
+              </div>
+              <Progress value={surah.percentMemorized} className="h-2" />
+            </div>
+            
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-sm font-medium">Memorization Strength</Label>
+                <span className={cn("text-sm font-semibold", config.color)}>{surah.memorizationStrength}/10</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">1</span>
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-300"
+                    style={{ width: `${(surah.memorizationStrength / 10) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground">10</span>
+              </div>
+            </div>
+          </div>
       </CardContent>
       <CardFooter>
         {isEditable ? (
-          <div className="w-full">
-            <Select 
-              value={surah.status} 
-              onValueChange={(value) => onStatusChange?.(surah.id, value as SurahStatus)}
-            >
-              <SelectTrigger className="w-full bg-card">
-                <SelectValue placeholder="Update status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="not-started">Not Started</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="weak-memorization">Weak Memorization</SelectItem>
-                <SelectItem value="needs-revision">Needs Revision</SelectItem>
-                <SelectItem value="strong-memorization">Strong Memorization</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="w-full space-y-4">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Memorization Strength: {surah.memorizationStrength}</Label>
+              <Slider
+                value={[surah.memorizationStrength]}
+                onValueChange={handleStrengthChange}
+                min={1}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Percent Memorized: {surah.percentMemorized}%</Label>
+              <Slider
+                value={[surah.percentMemorized]}
+                onValueChange={handlePercentChange}
+                min={1}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+            </div>
           </div>
         ) : (
-          <p className="text-sm font-semibold">{config.label}</p>
+          <div className="w-full">
+            <p className={cn("text-sm font-semibold text-center", config.color)}>{config.label}</p>
+          </div>
         )}
       </CardFooter>
     </Card>

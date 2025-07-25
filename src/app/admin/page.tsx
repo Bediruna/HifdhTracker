@@ -5,7 +5,6 @@ import HifdhTracker from '@/components/hifdh-tracker';
 import ProgressSummary from '@/components/progress-summary';
 import LoginCard from '@/components/login-card';
 import { useAuth } from '@/contexts/AuthContext';
-import { type SurahStatus } from '@/lib/quran-data';
 import { useUserProgress } from '@/hooks/use-progress';
 import { updateAdminProgress } from '@/lib/firestore-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,25 +17,25 @@ export default function AdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  const handleStatusChange = async (id: number, status: SurahStatus) => {
+  const handleProgressChange = async (id: number, memorizationStrength: number, percentMemorized: number) => {
     if (!user || !isAdmin) return;
 
     setIsSaving(true);
     try {
       // Save to Firestore (the real-time hook will update the UI automatically)
-      await updateAdminProgress(id, status);
+      await updateAdminProgress(id, memorizationStrength, percentMemorized);
       
       const surahName = surahs.find(s => s.id === id)?.name;
       toast({
         title: "Success",
-        description: `Surah ${surahName} status updated to ${status}`,
+        description: `Surah ${surahName} progress updated: ${memorizationStrength}/10 strength, ${percentMemorized}% memorized`,
       });
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error updating progress:', error);
       
       toast({
         title: "Error",
-        description: "Failed to update status. Please try again.",
+        description: "Failed to update progress. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -121,7 +120,7 @@ export default function AdminPage() {
             </h2>
             <ProgressSummary surahs={surahs} />
             <div className="mt-8">
-              <HifdhTracker surahs={surahs} isEditable={true} onStatusChange={handleStatusChange} />
+              <HifdhTracker surahs={surahs} isEditable={true} onProgressChange={handleProgressChange} />
             </div>
           </section>
         </div>

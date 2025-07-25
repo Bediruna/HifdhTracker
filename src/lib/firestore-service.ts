@@ -9,14 +9,19 @@ import {
   getDocs 
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Surah, SurahStatus, quranData } from './quran-data';
+import { Surah, quranData } from './quran-data';
 
 const HIFDH_COLLECTION = 'hifdh-progress';
 const ADMIN_USER_ID = 'bediruna@gmail.com';
 
+export interface SurahProgress {
+  memorizationStrength: number; // 1-10
+  percentMemorized: number; // 1-100
+}
+
 export interface HifdhProgress {
   userId: string;
-  surahs: Record<number, SurahStatus>;
+  surahs: Record<number, SurahProgress>;
   lastUpdated: Date;
 }
 
@@ -26,10 +31,13 @@ export interface HifdhProgress {
 export async function initializeUserProgress(userId: string): Promise<void> {
   const userDocRef = doc(db, HIFDH_COLLECTION, userId);
   
-  // Convert quranData array to Record<number, SurahStatus>
-  const surahsRecord: Record<number, SurahStatus> = {};
+  // Convert quranData array to Record<number, SurahProgress>
+  const surahsRecord: Record<number, SurahProgress> = {};
   quranData.forEach(surah => {
-    surahsRecord[surah.id] = surah.status;
+    surahsRecord[surah.id] = {
+      memorizationStrength: surah.memorizationStrength,
+      percentMemorized: surah.percentMemorized
+    };
   });
 
   const progressData: HifdhProgress = {
@@ -53,10 +61,14 @@ export async function getUserProgress(userId: string): Promise<Surah[]> {
       const data = docSnap.data() as HifdhProgress;
       
       // Merge with quranData to get the full surah information
-      return quranData.map(surah => ({
-        ...surah,
-        status: data.surahs[surah.id] || surah.status
-      }));
+      return quranData.map(surah => {
+        const progress = data.surahs[surah.id];
+        return {
+          ...surah,
+          memorizationStrength: progress?.memorizationStrength || surah.memorizationStrength,
+          percentMemorized: progress?.percentMemorized || surah.percentMemorized
+        };
+      });
     } else {
       // Initialize with default data if document doesn't exist
       await initializeUserProgress(userId);
@@ -70,12 +82,13 @@ export async function getUserProgress(userId: string): Promise<Surah[]> {
 }
 
 /**
- * Update a specific surah's status in Firestore
+ * Update a specific surah's progress in Firestore
  */
-export async function updateSurahStatus(
+export async function updateSurahProgress(
   userId: string, 
   surahId: number, 
-  status: SurahStatus
+  memorizationStrength: number,
+  percentMemorized: number
 ): Promise<void> {
   try {
     const userDocRef = doc(db, HIFDH_COLLECTION, userId);
@@ -88,13 +101,14 @@ export async function updateSurahStatus(
       await initializeUserProgress(userId);
     }
 
-    // Update the specific surah status
+    // Update the specific surah progress
     await updateDoc(userDocRef, {
-      [`surahs.${surahId}`]: status,
+      [`surahs.${surahId}.memorizationStrength`]: memorizationStrength,
+      [`surahs.${surahId}.percentMemorized`]: percentMemorized,
       lastUpdated: new Date()
     });
   } catch (error) {
-    console.error('Error updating surah status:', error);
+    console.error('Error updating surah progress:', error);
     throw error;
   }
 }
@@ -111,7 +125,8 @@ export async function getAdminProgress(): Promise<Surah[]> {
  */
 export async function updateAdminProgress(
   surahId: number, 
-  status: SurahStatus
+  memorizationStrength: number,
+  percentMemorized: number
 ): Promise<void> {
-  return updateSurahStatus(ADMIN_USER_ID, surahId, status);
+  return updateSurahProgress(ADMIN_USER_ID, surahId, memorizationStrength, percentMemorized);
 }

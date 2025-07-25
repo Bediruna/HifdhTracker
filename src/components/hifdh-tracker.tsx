@@ -1,13 +1,13 @@
-import type { Surah, SurahStatus } from '@/lib/quran-data';
+import type { Surah } from '@/lib/quran-data';
 import SurahCard from './surah-card';
 
 interface HifdhTrackerProps {
   surahs: Surah[];
   isEditable: boolean;
-  onStatusChange?: (id: number, status: SurahStatus) => void;
+  onProgressChange?: (id: number, memorizationStrength: number, percentMemorized: number) => void;
 }
 
-export default function HifdhTracker({ surahs, isEditable, onStatusChange }: HifdhTrackerProps) {
+export default function HifdhTracker({ surahs, isEditable, onProgressChange }: HifdhTrackerProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {surahs.map(surah => (
@@ -15,7 +15,7 @@ export default function HifdhTracker({ surahs, isEditable, onStatusChange }: Hif
           key={surah.id} 
           surah={surah} 
           isEditable={isEditable} 
-          onStatusChange={onStatusChange}
+          onProgressChange={onProgressChange}
         />
       ))}
     </div>
